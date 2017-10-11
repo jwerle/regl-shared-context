@@ -1,0 +1,19 @@
+{
+  "name": "regl-shared-context",
+  "version": "1.0.0",
+  "description": "Share regl context variables in the same context.",
+  "main": "index.js",
+  "scripts": {
+    "test": ":"
+  },
+  "keywords": [
+    "regl",
+    "context",
+    "shared"
+  ],
+  "author": "Joseph Werle <joseph.werle@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "regl": "^1.3.0"
+  }
+}
