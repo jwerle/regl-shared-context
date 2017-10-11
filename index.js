@@ -1,43 +1,40 @@
-const { defineProperty, assign } = Object
-
-/**
- * hash() -> String
- */
-const hash = () => Math.random().toString('16').slice(2).replace('.','')
-
-/**
- * define(object: Object, key: String, descriptor: Object) -> Object
- */
-
-const define = (object, key, descriptor) => {
-  return defineProperty(object, key, assign({enumerable: true}, descriptor))
+// hash() -> String
+function hash() {
+  return Math.random().toString('16').slice(2).replace('.','')
 }
 
 /**
+ * Wraps a regl context object with accessors providing a shared regl context
+ * object. Properties are evaluated in the order in which they were defined.
+ *
  * context(object: Object) -> Function|Any
+ *
+ * @public
+ * @param {Object} object
+ * @return {Object}
+ * @throws TypeError
+ * @see {https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys#Description}
  */
 function context(object) {
-  if (!object || 'object' != typeof object) {
+  if (!object || 'object' != typeof object || Array.isArray(object)) {
     throw new TypeError("shared.context(): Expecting object.")
   }
+  // regl context state
   let currentReglContext = null
   let currentReglArguments = null
   let currentReglBatchId = 0
-  const entranceKey = hash()
-  const exitKey = hash()
-  return assign(
-    {[`__${entranceKey}__`]: enter},
+  return Object.assign(
+    createContextFunction(hash(), onenter),
     createAccessors(object),
-    {[`__${exitKey}__`]: exit},
-  )
+    createContextFunction(hash(), onexit))
 
-  function enter(reglContext, reglArguments, reglBatchId) {
+  function onenter(reglContext, reglArguments, reglBatchId) {
     currentReglContext = reglContext
     currentReglArguments = reglArguments
     currentReglBatchId = reglBatchId
   }
 
-  function exit() {
+  function onexit() {
     currentReglContext = null
     currentReglArguments = null
     currentReglBatchId = 0
@@ -54,18 +51,23 @@ function context(object) {
     return (currentReglContext[key] = value)
   }
 
+  function createContextFunction(key, fn) {
+    const object = {}
+    object['__'+key+'__'] = fn
+    return object
+  }
+
   function createAccessors(object) {
     const proxy = {}
     for (const key in object) {
-      define(proxy, key, {
-        get() {
-          return () => {
-            const value = object[key]
-            if ('function' == typeof value) {
-              return call(key)
-            } else {
-              return set(key, value)
-            }
+      Object.defineProperty(proxy, key, {
+        enumerable: true,
+        value: function () {
+          const value = object[key]
+          if ('function' == typeof value) {
+            return call(key)
+          } else {
+            return set(key, value)
           }
         }
       })

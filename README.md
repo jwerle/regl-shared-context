@@ -40,10 +40,17 @@ multiple regl commands.
 ### shared.context(object: Object) -> Object
 
 This function accepts an object that should be used for the `context`
-property of the regl command constructor.
+property of the regl command constructor. It wraps a regl context object
+with accessors providing a shared regl context object. Properties are
+evaluated in the order in which they were defined.
 
 ```js
-const command = regl({context: shared.context({ ... })})
+const command = regl({
+  context: shared.context({
+    valueA: 123,
+    valueB: ({valueA}) => valueB // 123
+  })
+})
 ```
 
 ## License

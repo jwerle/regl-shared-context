@@ -14,5 +14,6 @@ const query = regl({
 })
 
 query({subject: 'bradley', predicate: 'is a', object: 'kinkajou'}, ({output}) => {
+  document.write(output + '\n')
   console.log(output);
 })
